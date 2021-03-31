@@ -9,9 +9,8 @@ describe('HomeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ HomeComponent ]
-    })
-    .compileComponents();
+      declarations: [HomeComponent],
+    }).compileComponents();
   });
 
   beforeEach(() => {
@@ -30,7 +29,12 @@ describe('HomeComponent', () => {
 
     const mockMode = 'create';
     const mockWidgets = [];
-    const mockWidget = { id: '1', title: 'mock', description: 'mock', price: 100 };
+    const mockWidget = {
+      id: '1',
+      title: 'mock',
+      description: 'mock',
+      price: 100,
+    };
 
     component.reCalculateTotal(mockMode, mockWidgets, mockWidget);
 
@@ -43,7 +47,12 @@ describe('HomeComponent', () => {
   });
 
   it('should call the appropriate method depending on mode in updateWidgets', () => {
-    const mockWidget = { id: '1', title: 'mock', description: 'mock', price: 100 };
+    const mockWidget = {
+      id: '1',
+      title: 'mock',
+      description: 'mock',
+      price: 100,
+    };
 
     spyOn(component, 'addWidget').and.callThrough();
     spyOn(component, 'updateWidget').and.callThrough();
