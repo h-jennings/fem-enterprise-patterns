@@ -39,5 +39,14 @@ export class InputComponent implements OnInit {
     // Reverse the output i.e. Lukas becomes sakuL
     // BONUS: How would you URL encode the output?
     // -------------------------------------------------------------------
+    this.searchControl.valueChanges
+      .pipe(
+        map((value: string) => {
+          return value.toUpperCase().split('').reverse().join('');
+        })
+      )
+      .subscribe((result) => {
+        this.queryString = result;
+      });
   }
 }
