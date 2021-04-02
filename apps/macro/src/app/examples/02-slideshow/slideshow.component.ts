@@ -1,12 +1,12 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
-import { fromEvent, merge } from 'rxjs';
-import { map, scan, startWith } from 'rxjs/operators';
+import { Component, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { fromEvent, merge, Subscription } from 'rxjs';
+import { map, mapTo, scan, startWith, tap } from 'rxjs/operators';
 import { slideshowAnimation } from './slideshow.animations';
 
 const images: string[] = [
   'assets/lion-roar.jpg',
   'assets/maxres.jpg',
-  'assets/maxresdefault.jpg'
+  'assets/maxresdefault.jpg',
 ];
 
 interface Move {
@@ -21,24 +21,25 @@ interface Position {
 
 enum Direction {
   left = 'left',
-  right= 'right'
+  right = 'right',
 }
 
 @Component({
   selector: 'app-slideshow',
   styleUrls: ['./slideshow.component.css'],
   templateUrl: './slideshow.component.html',
-  animations: [slideshowAnimation]
+  animations: [slideshowAnimation],
 })
-export class SlideshowComponent implements AfterViewInit {
+export class SlideshowComponent implements AfterViewInit, OnDestroy {
   @ViewChild('previous') previous;
   @ViewChild('next') next;
 
   images: string[] = images;
   currentPosition: Position = {
     index: 0,
-    direction: Direction.left
+    direction: Direction.left,
   };
+  subscription: Subscription;
 
   ngAfterViewInit() {
     // -------------------------------------------------------------------
@@ -49,12 +50,39 @@ export class SlideshowComponent implements AfterViewInit {
     // Pass an object that looks like this { shift: -1, direction: Direction.right }
     // Combine both streams to update the same slideshow
     // -------------------------------------------------------------------
+    const next$ = fromEvent(this.getNativeElement(this.next), 'click').pipe(
+      map(() => ({ shift: 1, direction: Direction.right }))
+    );
+    const previous$ = fromEvent(
+      this.getNativeElement(this.previous),
+      'click'
+    ).pipe(map(() => ({ shift: -1, direction: Direction.left })));
+
+    this.subscription = merge(next$, previous$)
+      .pipe(
+        scan((acc, curr) =>
+          Object.assign(
+            {},
+            {
+              direction: curr.direction,
+              shift: this.getAdjustedIndex(acc.shift, curr.shift),
+            }
+          )
+        ),
+        tap(({ direction, shift }) => {
+          this.currentPosition = { direction, index: shift };
+        })
+      )
+      .subscribe();
   }
 
   getAdjustedIndex(current, shift) {
     const projectedIndex = current + shift;
     const length = this.images.length;
-    return this.adjustForMinIndex(length, this.adjustForMaxIndex(length, projectedIndex));
+    return this.adjustForMinIndex(
+      length,
+      this.adjustForMaxIndex(length, projectedIndex)
+    );
   }
 
   adjustForMinIndex(length, index) {
@@ -67,5 +95,10 @@ export class SlideshowComponent implements AfterViewInit {
 
   getNativeElement(element) {
     return element._elementRef.nativeElement;
+  }
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 }

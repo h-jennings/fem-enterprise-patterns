@@ -1,4 +1,4 @@
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
 import { fromEvent, Subscription } from 'rxjs/index';
 import { map, scan, startWith, tap } from 'rxjs/operators';
 
@@ -35,7 +35,7 @@ import { map, scan, startWith, tap } from 'rxjs/operators';
     </div>
   `,
 })
-export class CounterComponent implements AfterViewInit {
+export class CounterComponent implements AfterViewInit, OnDestroy {
   @ViewChild('btn') btn;
   count = 0;
   subscription: Subscription;
@@ -57,5 +57,10 @@ export class CounterComponent implements AfterViewInit {
 
   getNativeElement(element) {
     return element._elementRef.nativeElement;
+  }
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 }
