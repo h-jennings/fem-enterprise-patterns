@@ -3,6 +3,10 @@ import { Component } from '@angular/core';
 interface BaseEntity {
   id: string | null;
 }
+interface Action {
+  type: string;
+  payload?: any;
+}
 
 interface Client extends BaseEntity {
   firstName: string;
@@ -58,6 +62,81 @@ class ClientStore {
     return this.state[key];
   }
 }
+
+const CLIENT_LOAD = '[Client] Load';
+const CLIENT_CREATE = '[Client] Create';
+const CLIENT_UPDATE = '[Client] Update';
+const CLIENT_DELETE = '[Client] Delete';
+const CLIENT_SELECT = '[Client] Select';
+const CLIENT_CLEAR = '[Client] Clear';
+
+function loadClients(state, clients): ClientState {
+  console.log('LOAD CLIENTS!', clients);
+  return {
+    ...state,
+    clients,
+  };
+}
+function selectClient(state, client): ClientState {
+  return {
+    ...state,
+    currentClient: client,
+  };
+}
+function createClient(state, client): ClientState {
+  return {
+    ...state,
+    clients: [...state.clients, client],
+  };
+}
+function updateClient(state, client): ClientState {
+  return {
+    ...state,
+    clients: state.clients.map((c) => {
+      return c.id === client.id ? Object.assign({}, client) : c;
+    }),
+  };
+}
+function deleteClient(state, client): ClientState {
+  return {
+    ...state,
+    clients: state.clients.filter((c) => c.id !== client.id),
+  };
+}
+function clearClient(state, clients): ClientState {
+  return {
+    ...state,
+    currentClient: null,
+  };
+}
+
+const clientsReducer = (
+  state: ClientState = initialClientState,
+  action: Action
+) => {
+  switch (action.type) {
+    case CLIENT_LOAD: {
+      return loadClients(state, action.payload);
+    }
+    case CLIENT_SELECT: {
+      return selectClient(state, action.payload);
+    }
+    case CLIENT_CREATE: {
+      return createClient(state, action.payload);
+    }
+    case CLIENT_UPDATE: {
+      return updateClient(state, action.payload);
+    }
+    case CLIENT_DELETE: {
+      return deleteClient(state, action.payload);
+    }
+    case CLIENT_CLEAR: {
+      return clearClient(state, action.payload);
+    }
+    default:
+      return state;
+  }
+};
 
 const clientsStore = new ClientStore(initialClientState);
 const currentClient = clientsStore.select('currentClient');
